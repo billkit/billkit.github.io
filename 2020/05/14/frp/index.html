@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"billkit.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="frp 是一个高性能的反向代理应用，可以帮助您轻松地进行内网穿透，对外网提供服务，支持 tcp, http, https 等协议类型，并且 web 服务支持根据域名进行路由转发。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="frp内网穿透">
+<meta property="og:url" content="https://billkit.github.io/2020/05/14/frp/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="frp 是一个高性能的反向代理应用，可以帮助您轻松地进行内网穿透，对外网提供服务，支持 tcp, http, https 等协议类型，并且 web 服务支持根据域名进行路由转发。">
+<meta property="article:published_time" content="2020-05-14T08:12:18.388Z">
+<meta property="article:modified_time" content="2020-05-14T08:13:11.784Z">
+<meta property="article:author" content="Billkit">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://billkit.github.io/2020/05/14/frp/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>frp内网穿透 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://billkit.github.io/2020/05/14/frp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Billkit">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          frp内网穿透
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-05-14 04:12:18 / Modified: 04:13:11" itemprop="dateCreated datePublished" datetime="2020-05-14T04:12:18-04:00">2020-05-14</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>frp</strong> 是一个高性能的反向代理应用，可以帮助您轻松地进行内网穿透，对外网提供服务，支持 tcp, http, https 等协议类型，并且 web 服务支持根据域名进行路由转发。</p>
+<a id="more"></a>
+
+<h4 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h4><p>在使用frp之前，需要一台有公网IP的服务器（可以购买VPS），一台需要实现内网穿透的机器（下文称内网主机），SSH工具，以及一个域名（如果只是建立SSH反向代理则不需要域名）。</p>
+<h4 id="开始使用"><a href="#开始使用" class="headerlink" title="开始使用"></a>开始使用</h4><p>根据机器的操作系统，在 <a href="https://github.com/fatedier/frp/releases" target="_blank" rel="noopener" title="Release">Release</a> 页面中找到对应的frp程序，然后分别在外网主机 VPS 和内网主机中下载它。</p>
+<p>下面的所示范用的 <strong>frp</strong> 程序版本为<strong>linux</strong></p>
+<h4 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h4><p>SSH连接上 VPS 主机后，</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#使用 wget指令下载frp。</span></span><br><span class="line">wget https://github.com/fatedier/frp/releases/download/v0.32.0/frp_0.32.0_linux_amd64.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用tar指令解压tar.gz文件</span></span><br><span class="line">tar -zxvf frp_0.32.0_linux_amd64.tar.gz</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用cd指令进入解压出来的文件夹</span></span><br><span class="line"><span class="built_in">cd</span> frp_0.32.0_linux_amd64/</span><br><span class="line"><span class="comment"># </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 外网主机作为服务端，可以删掉不必要的客户端文件，使用rm指令删除文件。</span></span><br><span class="line">rm -f frpc*</span><br></pre></td></tr></table></figure>
+<p>接下来要修改服务器配置文件，即 <strong>frps.ini</strong> 文件。使用 <strong>vi</strong>  或者 <strong>nano</strong> 指令对目标文件进行编辑。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi frps.ini</span><br></pre></td></tr></table></figure>
+
+<p>打开<code>frps.ini</code>后可以看到默认已经有很多详细的配置和示范样例，该文章仅以达到内网穿透为目的，所以这里选择删掉或注释掉里面的所有内容，然后根据群晖的情况，按照官方的中文文档添加以下配置。（这里的操作都使用vi命令，关于vi命令的使用方式这里不作详细介绍，可以自行搜索相关使用方法。）</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[common]</span><br><span class="line">bind_port = 7000</span><br><span class="line">vhost_http_port = 8080</span><br></pre></td></tr></table></figure>
+<p><code>[common]</code>部分是必须有的配置，其中<code>bind_port</code>是自己设定的 <strong>frp</strong> 服务端端口，<code>vhost_http_port</code>是自己设定的 <strong>http</strong> 访问端口。</p>
+<p>保存上面的配置后，使用以下指令启动frp服务端。（如果需要在后台运行，请往下翻阅关于后台运行的部分。）</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./frps -c ./frps.ini</span><br></pre></td></tr></table></figure>
+<p>服务端的工作就到此结束了。</p>
+<h4 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h4><p>客户端前面的操作和服务端是一模一样的，这里不一一解释。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">wget https://github.com/fatedier/frp/releases/download/v0.32.0/frp_0.32.0_linux_amd64.tar.gz</span><br><span class="line">tar -zxvf frp_0.32.0_linux_amd64.tar.gz</span><br><span class="line"><span class="built_in">cd</span> frp_0.32.0_linux_amd64</span><br><span class="line">rm -f frps*</span><br><span class="line">vi frpc.ini</span><br></pre></td></tr></table></figure>
+<h5 id="客户端的配置如下"><a href="#客户端的配置如下" class="headerlink" title="客户端的配置如下"></a>客户端的配置如下</h5><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[common]</span></span><br><span class="line"><span class="attr">server_addr</span> = x.x.x.x</span><br><span class="line"><span class="attr">server_port</span> = <span class="number">7000</span></span><br><span class="line"></span><br><span class="line"><span class="section">[ssh]</span></span><br><span class="line"><span class="attr">type</span> = tcp</span><br><span class="line"><span class="attr">local_ip</span> = <span class="number">127.0</span>.<span class="number">0.1</span></span><br><span class="line"><span class="attr">local_port</span> = <span class="number">22</span></span><br><span class="line"><span class="attr">remote_port</span> = <span class="number">6000</span></span><br><span class="line"></span><br><span class="line"><span class="section">[nas]</span></span><br><span class="line"><span class="attr">type</span> = http</span><br><span class="line"><span class="attr">local_port</span> = <span class="number">5000</span></span><br><span class="line"><span class="attr">custom_domains</span> = no1.sunnyrx.com</span><br><span class="line"></span><br><span class="line"><span class="section">[web]</span></span><br><span class="line"><span class="attr">type</span> = http</span><br><span class="line"><span class="attr">local_port</span> = <span class="number">80</span></span><br><span class="line"><span class="attr">custom_domains</span> = no2.sunnyrx.com</span><br></pre></td></tr></table></figure>
+<p>上面的配置和服务端是对应的。</p>
+<p><code>[common]</code>中的<code>server_addr</code>填frp服务端的ip（也就是外网主机的IP），<code>server_port</code>填frp服务端的<code>bind_prot</code>。</p>
+<p><code>[ssh]</code>中的<code>local_port</code>填群晖的<code>ssh</code>端口。</p>
+<p><code>[nas]</code>中的<code>type</code>对应服务端配置。<code>local_port</code>填群晖的DSM端口。<code>custom_domains</code>为要映射的域名，记得域名的A记录要解析到外网主机的IP。</p>
+<p><code>[web]</code>同上，<code>local_port</code>填群晖的<code>web</code>端口。这里创建了两个<code>http</code>反向代理是为了分别映射群晖两个重要的端口，<code>5000</code>和<code>80</code>，前者用于登录群晖管理，后者用于群晖的<code>Web Station</code>和<code>DS Photo</code>。</p>
+<p>保存配置，输入以下指令运行frp客户端。（同样如果需要在后台运行，请往下翻阅关于后台运行的部分。）</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./frpc -c ./frpc.ini</span><br></pre></td></tr></table></figure>
+<p>此时在服务端会看到<code>&quot;start proxy sucess&quot;</code>字样，即连接成功。</p>
+<p>现在可以用SSH通过外网主机IP:6000和群晖建立SSH连接。通过浏览器访问no1.sunnyrx.com:8080打开群晖nas的管理页面，访问no2.sunnyrx.com:8080打开群晖Web Station的网站，DS Photo app可以连接no2.sunnyrx.com:8080进入DS Photo管理。</p>
+<h4 id="让frp在后台运行"><a href="#让frp在后台运行" class="headerlink" title="让frp在后台运行"></a>让frp在后台运行</h4><p>虽然现在frp运作起来了，内网穿透也实现了，但这还是不够的。此时如果断开与服务端或者客户端的SSH连接（比如关掉了Xshell）也就中止了frp的运行。</p>
+<p>保持frp运行是关键是让服务端的frp和客户端的frp在后台运行，frp提供以系统服务方式在跟随系统启动。</p>
+<p>首先进入frp目录执行以下命令</p>
+<p><strong>服务端</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp frps /usr/bin/</span><br><span class="line">cp systemd/frps.service /etc/systemd/system/</span><br></pre></td></tr></table></figure>
+<p><strong>客户端</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cp frpc /usr/bin/</span><br><span class="line">cp systemd/frpc.service /etc/systemd/system/</span><br></pre></td></tr></table></figure>
+<p><strong>指定配置文件路径</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mkdir /etc/frp</span><br></pre></td></tr></table></figure>
+<p>复制<code>.ini</code>文件到<code>/etc/frp</code>,服务端是<code>frps.ini</code>，客户端是<code>frpc.ini</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp frps.ini /etc/frp</span><br></pre></td></tr></table></figure>
+<p><strong>开机自动运行</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl <span class="built_in">enable</span> frpc.service</span><br></pre></td></tr></table></figure>
+<p><strong>启动<code>frp</code></strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl start frps</span><br></pre></td></tr></table></figure>
+<p><strong>这样frp就会在后台运行了，并且在系统重启后会自动启动</strong></p>
+<p><strong>执行以下命令可以重启<code>frp</code></strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl restart frps</span><br></pre></td></tr></table></figure>
+<hr>
+<h5 id="macOS-配置开机自启动"><a href="#macOS-配置开机自启动" class="headerlink" title="macOS 配置开机自启动"></a>macOS 配置开机自启动</h5><p>macOS 使用<code>launch daemons and agents</code>配置自启动项，<code>launch daemons</code>和<code>launch agents</code>由<code>launchd</code>进程管理。</p>
+<p>创建自启动文件<code>plist</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo nano /Library/LaunchDaemons/frpc.plist</span><br></pre></td></tr></table></figure>
+<p>复制以下内容到<code>frpc.plist</code>文件中保存退出。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=<span class="string">"1.0"</span> encoding=<span class="string">"UTF-8"</span>?&gt;</span><br><span class="line">&lt;!DOCTYPE plist PUBLIC <span class="string">"-//Apple//DTD PLIST 1.0//EN"</span> <span class="string">"http://www.apple.com/DTDs/PropertyList-1.0.dtd"</span>&gt;</span><br><span class="line">&lt;plist version=<span class="string">"1.0"</span>&gt;</span><br><span class="line">  &lt;dict&gt;</span><br><span class="line">    &lt;key&gt;KeepAlive&lt;/key&gt;</span><br><span class="line">    &lt;<span class="literal">true</span>/&gt;</span><br><span class="line">    &lt;key&gt;Label&lt;/key&gt;</span><br><span class="line">    &lt;string&gt;frpc&lt;/string&gt;</span><br><span class="line">    &lt;key&gt;ProgramArguments&lt;/key&gt;</span><br><span class="line">    &lt;array&gt;</span><br><span class="line">    &lt;string&gt;/usr/<span class="built_in">local</span>/bin/frpc&lt;/string&gt;</span><br><span class="line">    &lt;string&gt;-c&lt;/string&gt;</span><br><span class="line">    &lt;string&gt;/etc/frpc.ini&lt;/string&gt;</span><br><span class="line">    &lt;/array&gt;</span><br><span class="line">  &lt;/dict&gt;</span><br><span class="line">&lt;/plist&gt;</span><br></pre></td></tr></table></figure>
+<p>在<code>plist</code>文件中，<code>frpc</code>和<code>frpc.ini</code>的路径分别是<code>/usr/local/bin/frpc</code> 和<code>/etc/frpc.ini</code><br>需要执行以下命令，把文件放在相应的目录中。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo cp frpc /usr/<span class="built_in">local</span>/bin/</span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo cp frpc.ini /etc/</span><br></pre></td></tr></table></figure>
+<p>添加自启动项目</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo launchctl load -w /Library/LaunchDaemons/frpc.plist</span><br></pre></td></tr></table></figure>
+<p>启动自启动项</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">launchctl start frpc</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/14/hello-world/" rel="prev" title="Hello World">
+      <i class="fa fa-chevron-left"></i> Hello World
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#准备"><span class="nav-number">1.</span> <span class="nav-text">准备</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#开始使用"><span class="nav-number">2.</span> <span class="nav-text">开始使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#服务器端"><span class="nav-number">3.</span> <span class="nav-text">服务器端</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#客户端"><span class="nav-number">4.</span> <span class="nav-text">客户端</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#客户端的配置如下"><span class="nav-number">4.1.</span> <span class="nav-text">客户端的配置如下</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#让frp在后台运行"><span class="nav-number">5.</span> <span class="nav-text">让frp在后台运行</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#macOS-配置开机自启动"><span class="nav-number">5.1.</span> <span class="nav-text">macOS 配置开机自启动</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Billkit</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Billkit</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
